@@ -1,0 +1,31 @@
+= SICK Visionary Python base changelog
+
+This document provides a summary of all notable changes of the Visionary Python base library.
+For a detailed view of what was changed, please refer to the repository's commit history.
+
+This project utilizes semantic versioning.
+
+
+== 1.0.0
+
+=== Changed
+
+=== Fixed
+
+=== Added
+
+* initial public release
+
+=== Removed
+
+=== Known Issues
+
+=== Compatibility
+
+* Python >= 3.8
+
+=== Supported devices
+
+* Visionary-T Mini CX (V3S105-1AAAAAA) 2.1.0
+* Visionary-S CX (V3S102-1AAAAAA and V3S102-1AABAAB) 6.0.0
+

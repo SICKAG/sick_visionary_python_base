@@ -1,0 +1,52 @@
+= sick_visionary_python_base
+:toclevels: 4
+:source-highlighter: rouge
+:icons: font
+:toc:
+
+== Overview
+
+This repository provides the base interfaces to access SICK Visionary devices.
+Using the classes in this module parameters can be queried and configured, status information can be accessed
+and 3D image data streams can be set up and controlled.
+
+Supported protocols are:
+
+* CoLa-B for parametrization as used by the Visionary-S CX device.
+* CoLa-2 for parametrization as used by the Visionary-T Mini CX device.
+* the SICK Blob format for streaming data.
+
+== License
+
+The source code is released under link:./LICENSE[The Unlicense].
+
+== Getting started
+
+Before you begin, ensure you have met the following requirements:
+
+* You have installed `pip`, which is a package manager for Python. If not, you can install it using the following command:
+
+[source,shell]
+----
+$ sudo apt install python3-pip
+----
+
+* You have installed the following Python libraries: `NumPy`, and `s`. If not, you can install them using pip:
+
+[source,shell]
+----
+$ pip3 install scikit-image
+$ pip3 install numpy
+----
+
+[NOTE]
+====
+Please replace the installation commands with the appropriate ones for your operating system or Python environment if necessary.
+====
+
+== Support
+
+Depending on the nature of your question, there are two support channels:
+
+1. For questions regarding the code shared in this repo please check the FAQ first and link:../../issues[search if an issue already exists]. If a related issue doesn't exist, you can open a new issue using the link:../../issues/new/choose[issue form].
+2. For application or device specific questions look for common solutions and knowledge articles on the link:https://support.sick.com/[Sick Support Portal]. If your question is not answered there, open a ticket on the link:https://support.sick.com/[Sick Support Portal].
