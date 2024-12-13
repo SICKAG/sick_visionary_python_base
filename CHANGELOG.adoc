@@ -5,6 +5,30 @@ For a detailed view of what was changed, please refer to the repository's commit
 
 This project utilizes semantic versioning.
 
+== 1.1.0
+
+=== Changed
+
+* Streaming class supports streaming via UDP sockets
+
+=== Fixed
+
+=== Added
+
+* Added CheckHeader Method
+
+=== Removed
+
+=== Known Issues
+
+=== Compatibility
+
+* Python >= 3.8
+
+== Supported devices
+
+* Visionary-T Mini CX (V3S105-1AAAAAA) versions 2.x, 3.x
+* Visionary-S CX (V3S102-1AAAAAA and V3S102-1AABAAB) versions 6.x
 
 == 1.0.0
 
@@ -24,7 +48,7 @@ This project utilizes semantic versioning.
 
 * Python >= 3.8
 
-=== Supported devices
+== Supported devices
 
 * Visionary-T Mini CX (V3S105-1AAAAAA) 2.1.0
 * Visionary-S CX (V3S102-1AAAAAA and V3S102-1AABAAB) 6.0.0

@@ -51,9 +51,10 @@ class Streaming:
 
     """ All methods that use the streaming channel. """
 
-    def __init__(self, ipAddress='192.168.1.10', tcpPort=2114):
+    def __init__(self, ipAddress='192.168.1.10', streaming_port=2114, protocol="TCP"):
         self.ipAddress = ipAddress
-        self.tcpPort = tcpPort
+        self.streaming_port = streaming_port
+        self.protocol = protocol
         self.sock_stream = None
 
     def _read(self, nBytes):
@@ -77,18 +78,35 @@ class Streaming:
 
     ''' Opens the streaming channel. '''
 
-    def openStream(self):
-        logger.info("Opening streaming socket..."),
-        self.sock_stream = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock_stream.settimeout(5)
-        try:
-            self.sock_stream.connect((self.ipAddress, self.tcpPort))
-        except socket.error as err:
-            print("Error on connecting to %s:%d: %s" %
-                  (self.ipAddress, self.tcpPort, err))
-            logger.error("Error on connecting to %s:%d: %s" %
-                         (self.ipAddress, self.tcpPort, err))
-            sys.exit(2)
+    def openStream(self, server_address=None):
+        logger.info("Opening streaming socket...")
+        if self.protocol == "TCP":
+            self.sock_stream = socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM)
+            self.sock_stream.settimeout(5)
+            try:
+                self.sock_stream.connect((self.ipAddress, self.streaming_port))
+            except socket.error as err:
+                print("Error on connecting to %s:%d: %s" %
+                      (self.ipAddress, self.streaming_port, err))
+                logger.error("Error on connecting to %s:%d: %s" %
+                             (self.ipAddress, self.streaming_port, err))
+                sys.exit(2)
+        else:  # UDP
+            self.sock_stream = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock_stream.settimeout(5)  # 5sec
+            try:
+                # Bind the socket to the port
+                # use empty hostname to listen on all adapters
+                self.sock_stream.bind(server_address)
+                self.sock_stream.setsockopt(
+                    socket.SOL_SOCKET, socket.SO_RCVBUF, 4 * 1024 * 1024)  # 4MB buffer size
+            except socket.error as err:
+                print("Error on binding to %s:%d: %s" %
+                      (server_address[0], server_address[1], err))
+                logger.error("Error on binding to %s:%d: %s" %
+                             (server_address[0], server_address[1], err))
+                sys.exit(2)
         logger.info("...done.")
 
     def closeStream(self):
@@ -129,77 +147,126 @@ class Streaming:
                 frames.append(None)
         return frames
 
-    def getFrame(self, peek=False):
-        """ Receives the raw data frame from the device via the streaming channel.
-
-         peek(bool): if True it returns True if no data were found.
+    def checkHeader(self, header) -> bool:
         """
-        logger.debug('Reading image from stream...')
-        self.frame = None  # reset old frame
-        self.frame_acq_time_s = None
+        Validates the content of the provided header.
 
-        keepRunning = True
+        This method unpacks the header and checks if the magic word, protocol version,
+        and packet type match the expected values. If any of these checks fail, it logs
+        an error message and sets `valid` to False.
 
-        BLOB_HEAD_LEN = 11
-        try:
-            # read exactly the header length!
-            header = self._read(BLOB_HEAD_LEN)
-            receiveLenth = len(header)
-            if receiveLenth < BLOB_HEAD_LEN:
-                raise socket.error(
-                    "Network connection closed by peer. Receive length is {} and should be {}".format(receiveLenth,
-                                                                                                      BLOB_HEAD_LEN))
-        except socket.timeout:
-            header = None
+        Parameters:
+        header (bytes): The header data to be checked, expected to be in the format '>IIHB'.
 
-        if not header:
-            if peek:
-                return
-            raise socket.timeout("BLOB header received a timeout")
+        Returns:
+        tuple: A tuple containing a boolean indicating whether the header is valid (`valid`)
+            and the length of the package (`pkgLength`).
 
-        self.frame_acq_time_s = time.time()
-
-        logger.debug("len(header) = %d dump: %s" %
-                     (len(header), to_hex(header)))
-        assert len(header) == BLOB_HEAD_LEN, "Uh, not enough bytes for BLOB_HEAD_LEN, only %s" % (
-            len(header))
-
-        # check if the header content is as expected
+        Raises:
+        struct.error: If the header does not match the expected format.
+        """
+        valid = True
         (magicword, pkgLength, protocolVersion, packetType) = \
             struct.unpack('>IIHB', header)
         if magicword != 0x02020202:
             logger.error("Unknown magic word: %0x" % (magicword))
-            keepRunning = False
+            valid = False
         if protocolVersion != 0x0001:
             logger.error("Unknown protocol version: %0x" % (protocolVersion))
-            keepRunning = False
+            valid = False
         if packetType != 0x62:
             logger.error("Unknown packet type: %0x" % (packetType))
-            keepRunning = False
+            valid = False
+        return valid, pkgLength
 
-        if not keepRunning:
-            raise RuntimeError('something is wrong with the buffer')
+    def getFrame(self, peek=False):
+        """ Receives the raw data frame from the device via the streaming channel.
+        peek(bool): if True it returns True if no data were found.
+        """
+        logger.debug('Reading image from stream...')
+        self.frame = None  # reset old frame
+        self.frame_acq_time_s = None
+        keepRunning = True
 
-        # -3 for protocolVersion and packetType already received
-        # +1 for checksum
-        toread = pkgLength - 3 + 1
-        logger.debug("pkgLength: %d" % (pkgLength))
-        logger.debug("toread: %d" % (toread))
+        BLOB_HEAD_LEN = 11
 
-        data = bytearray(len(header) + toread)
-        view = memoryview(data)
-        view[:len(header)] = header
-        view = view[len(header):]
-        while toread:
-            nBytes = self.sock_stream.recv_into(view, toread)
-            if nBytes == 0:
-                # premature end of connection
-                raise RuntimeError("received {} but requested {} bytes".format(
-                    len(data) - len(view), pkgLength))
-            view = view[nBytes:]
-            toread -= nBytes
+        if self.protocol == "TCP":
+            try:
+                # read exactly the header length!
+                header = self._read(BLOB_HEAD_LEN)
+                receiveLenth = len(header)
+                if receiveLenth < BLOB_HEAD_LEN:
+                    raise socket.error(
+                        "Network connection closed by peer. Receive length is {} and should be {}".format(receiveLenth,
+                                                                                                          BLOB_HEAD_LEN))
+            except socket.timeout:
+                header = None
 
-        self.frame = data
+            if not header:
+                if peek:
+                    return
+                raise socket.timeout("BLOB header received a timeout")
+
+            self.frame_acq_time_s = time.time()
+
+            logger.debug("len(header) = %d dump: %s" %
+                         (len(header), to_hex(header)))
+            assert len(header) == BLOB_HEAD_LEN, "Uh, not enough bytes for BLOB_HEAD_LEN, only %s" % (
+                len(header))
+
+            keepRunning, pkgLength = self.checkHeader(header)
+
+            if not keepRunning:
+                raise RuntimeError('something is wrong with the buffer')
+
+            # -3 for protocolVersion and packetType already received
+            # +1 for checksum
+            toread = pkgLength - 3 + 1
+            logger.debug("pkgLength: %d" % (pkgLength))
+            logger.debug("toread: %d" % (toread))
+
+            data = bytearray(len(header) + toread)
+            view = memoryview(data)
+            view[:len(header)] = header
+            view = view[len(header):]
+            while toread:
+                nBytes = self.sock_stream.recv_into(view, toread)
+                if nBytes == 0:
+                    # premature end of connection
+                    raise RuntimeError("received {} but requested {} bytes".format(
+                        len(data) - len(view), pkgLength))
+                view = view[nBytes:]
+                toread -= nBytes
+            self.frame = data
+        else:
+            byte_arr = bytearray()
+            myData, server = self.sock_stream.recvfrom(1024)
+            logger.info(f"========== new BLOB received ==========")
+            logger.info(f"Blob number: {((myData[1] << 8) | (myData[0]))}")
+            logger.info("server IP: {}".format(server[0]))
+            # this is the port the server opens to transmit the data
+            logger.info("server port: {}".format(server[1]))
+            logger.info("========================================")
+            header_checked = False
+
+            # FIN Flag of Statemap in header is set when new BLOB begins
+            while myData[6] != 0x80:
+                byte_arr.extend(myData[14:-1])
+                # Check header validity
+                if not header_checked:
+                    keepRunning, _ = self.checkHeader(byte_arr[0:11])
+                    if not keepRunning:
+                        raise RuntimeError(
+                            'Something is wrong with the buffer')
+                    header_checked = True
+                    self.frame_acq_time_s = time.time()
+                fragment_number = ((myData[2] << 8) | (myData[3]))
+                logger.info(f"Fragment number: {fragment_number}")
+                myData, server = self.sock_stream.recvfrom(1024)
+            fragment_number = ((myData[2] << 8) | (myData[3]))
+            logger.info(f"Fragment number: {((myData[2] << 8) | (myData[3]))}")
+            byte_arr.extend(myData[14:])  # Payload begins at byteindex 14
+            self.frame = byte_arr
 
         frame_acq_stop = time.time()
         self.frame_revc_time_s = (frame_acq_stop - self.frame_acq_time_s)
