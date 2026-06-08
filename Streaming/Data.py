@@ -41,7 +41,7 @@ class Data:
 
     def read(self, dataBuffer, convertToMM=True):
         """
-        Extracts necessary data segments and triggers parsing of segments. 
+        Extracts necessary data segments and triggers parsing of segments.
 
         dataBuffer:  The raw data from the device. Obtained for example via getFrame() (Stream.py)
         convertToMM: If this is True, depthmap data is converted to millimeters after reading (can result in floating point values).

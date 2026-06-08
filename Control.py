@@ -1144,3 +1144,144 @@ class Control:
                 }
                 stats.append(entry)
         return stats
+
+    # Time synchronisation
+
+    def getTimeSyncEnabled(self):
+        """Reads the 'timeSynchronizationEnabled' variable."""
+        rx = self.readVariable(b'timeSynchronizationEnabled')
+        timeSynchronizationEnabled = struct.unpack('>?', rx)[0]
+        return timeSynchronizationEnabled
+
+    def enableTimeSync(self):
+        """Sets the 'timeSynchronizationEnabled' variable to true."""
+        enable = struct.pack('>?', True)
+        self.writeVariable(b'timeSynchronizationEnabled', enable)
+
+    def disableTimeSync(self):
+        """Sets the 'timeSynchronizationEnabled' variable to false."""
+        disable = struct.pack('>?', False)
+        self.writeVariable(b'timeSynchronizationEnabled', disable)
+
+    def getTimeSynchronizationOffset(self) -> int:
+        """Reads the 'timeSynchronizationOffset' variable."""
+        rx = self.readVariable(b'timeSynchronizationOffset')
+        time_synchronization_offset = struct.unpack('>I', rx)[0]
+        return time_synchronization_offset
+
+    def getTimeSynchronizationFPS(self) -> int:
+        """Reads the 'timeSynchronizationFPS' variable."""
+        rx = self.readVariable(b'timeSynchronizationFPS')
+        time_synchronization_fps = struct.unpack('>B', rx)[0]
+        return time_synchronization_fps
+
+    def getTimeSyncMode(self) -> str:
+        """Reads the 'timeSyncMode' variable."""
+        rx = self.readVariable(b'timeSyncMode')
+        time_sync_mode = struct.unpack('>B', rx)[0]
+
+        mode_dict = {
+            0: "NONE",
+            1: "NTP",
+            2: "PTP"
+        }
+        return mode_dict.get(time_sync_mode, "Invalid mode")
+
+    def setTimeSyncMode(self, time_sync_mode: str = 'None') -> str:
+        """Sets the 'timeSyncMode' variable.
+        Possible Inputs: 'None', 'NTP', 'PTP'.
+        """
+        mode_dict = {
+            0: "NONE",
+            1: "NTP",
+            2: "PTP"
+        }
+
+        for mode_enum, mode in mode_dict.items():
+            if mode == time_sync_mode:
+                self.writeVariable(b'timeSyncMode',
+                                   struct.pack('>B', mode_enum))
+
+    def getDeviceTime(self) -> int:
+        """Reads the 'DeviceTime' variable."""
+        rx = self.readVariable(b'DeviceTime')
+        unix_timestamp_ms = struct.unpack('>Q', rx)[0]
+        return unix_timestamp_ms
+
+    # Network Time Protocol (NTP)
+    def getNtpClientServerAddress(self) -> str:
+        """Reads the 'ntpClientServerAddress' variable."""
+        rx = self.readVariable(b'ntpClientServerAddress')
+        ntp_client_server_address, _ = self.unpack_flexstring_from(rx, 0)
+        return ntp_client_server_address.decode("utf-8")
+
+    def setNtpClientServerAddress(self, ip_address: str):
+        """Sets the 'ntpClientServerAddress' variable."""
+        self.writeVariable(b'ntpClientServerAddress',
+                           self.pack_flexstring(str.encode(ip_address)))
+
+    def getNtpClientServerPort(self) -> int:
+        """Reads the 'ntpClientServerPort' variable."""
+        rx = self.readVariable(b'ntpClientServerPort')
+        ntp_client_server_port = struct.unpack('>H', rx)[0]
+        return ntp_client_server_port
+
+    def setNtpClientServerPort(self, port: int):
+        """Sets the 'ntpClientServerPort' variable."""
+        self.writeVariable(b'ntpClientServerPort', struct.pack('>H', port))
+
+    def getNtpClientTimeout(self) -> int:
+        """Reads the 'ntpClientTimeout' variable."""
+        rx = self.readVariable(b'ntpClientTimeout')
+        ntp_client_timeout = struct.unpack('>I', rx)[0]
+        return ntp_client_timeout
+
+    def setNtpClientTimeout(self, timeout):
+        """Sets the 'ntpClientTimeout' variable."""
+        self.writeVariable(b'ntpClientTimeout', struct.pack('>I', timeout))
+
+    # Precision Time Protocol (PTP)
+    def getPtpMode(self) -> str:
+        """Reads the 'ptpMode' variable."""
+        rx = self.readVariable(b'ptpMode')
+        ptp_mode = struct.unpack('>B', rx)[0]
+
+        mode_dict = {
+            0: "AUTO",
+            1: "MASTER",
+            2: "SLAVE"
+        }
+        return mode_dict.get(ptp_mode, "Invalid mode")
+
+    def getPtpState(self) -> str:
+        """Reads the 'ptpState' variable."""
+        rx = self.readVariable(b'ptpState')
+        ptp_state = struct.unpack('>B', rx)[0]
+        state_dict = {
+            0: "INITIALIZING",
+            1: "FAULTY",
+            2: "DISABLED",
+            3: "LISTENING",
+            4: "PRE_MASTER",
+            5: "MASTER",
+            6: "PASSIVE",
+            7: "UNCALIBRATED",
+            8: "SLAVE",
+            9: "UNKNOWN"
+        }
+        return state_dict.get(ptp_state, "Invalid state")
+
+    def setPtpMode(self, ptp_mode: str = 'None'):
+        """Sets the 'ptpMode' variable."""
+        mode_dict = {
+            0: "AUTO",
+            1: "MASTER",
+            2: "SLAVE"
+        }
+        mode_enum = next(
+            (key for key, value in mode_dict.items() if value == ptp_mode), None)
+        if mode_enum is not None:
+            self.writeVariable(b'ptpMode', struct.pack('>B', mode_enum))
+        else:
+            logger.error(
+                f"Could't set {ptp_mode}. ptp_mode has to be AUTO/MASTER/SLAVE")

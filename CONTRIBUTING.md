@@ -73,7 +73,7 @@ In general, we follow the "fork-and-pull" Git workflow.
 
 > **NOTE** Be sure to merge the latest from "upstream" before making a pull request!
 
-### Enhacement
+### Enhancement
 Enhancement suggestions are tracked as GitHub issues.
 
 This section guides you through submitting an enhancement suggestion, including completely new features and minor improvements to existing functionality.
@@ -93,29 +93,41 @@ A good enhancement suggestion includes:
 
 ## Styleguide
 
-### Linting
-Our C++ Code is linted with `clang-tidy`. Linting helps you analyse your code for potential errors. Clang-tidy will automatically detect the [.clang-tidy](.clang-tidy) file to analyse your code.
-Follow these steps to use clang-tidy:
-```bash
-$ sudo apt-get install clang-tidy # install the clang-tidy package
-$ clang-tidy -i <FILEDIR>/*.cpp -- # e.g. to lint all cpp files
+### Code Style
+
+We maintain consistent code style using automated formatting and linting tools configured through pre-commit hooks. This ensures uniform code quality across the project.
+
+### Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) to automatically enforce code quality standards before each commit. The following hooks are configured:
+
+- **check-yaml**: Validates YAML file syntax
+- **trailing-whitespace**: Removes trailing whitespace from files
+- **mixed-line-ending**: Fixes mixed line endings (LF/CRLF)
+- **end-of-file-fixer**: Ensures files end with a newline
+- **autopep8**: Automatically formats Python code according to PEP 8 style guidelines
+
+#### Setting Up Pre-commit
+
+To set up your local development environment, use the provided setup script which automatically installs pre-commit and all dependencies:
+
+**On Windows (PowerShell):**
+```powershell
+.\setup_windows_env.ps1
 ```
 
-### Formatting
-
-We use `clang-format` so that our code is structured uniformly.
-Clang-format will automatically detect the [.clang-format](.clang-format) file to format your code.
-This will ensure that your code complies with our style guide.
-
-Follow these steps to apply clang-formatting:
+**On Linux/macOS:**
 ```bash
-$ sudo apt-get install clang-format # install the clang-format package
-$ clang-format -i <FILEDIR>/*.cpp # e.g. to format all cpp files
+bash setup_linux_env.sh
 ```
->**Note**
-> Replace FILEDIR with the actual folderpath
 
-Even better just use pre-commit in your clone, which will use the provided config to enforce the formatting even before committing locally.
+After setup, pre-commit will automatically run the configured hooks before every commit. If any hook fails, the commit will be blocked, and you'll need to fix the issues and try again.
+
+To manually install (if not using the setup script):
+```bash
+pip install -r requirements.txt
+pre-commit install
+```
 
 ## Issue and Pull Request Labels
 

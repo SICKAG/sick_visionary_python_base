@@ -32,37 +32,55 @@ The source code is released under link:./LICENSE[The Unlicense].
 | Visionary-T Mini CX (pass:[V3S105-1AAAAAA])
 | link:https://www.sick.com/de/en/catalog/products/machine-vision-and-identification/machine-vision/visionary-t-mini/v3s105-1aaaaaa/p/p665983[1112649]
 | 3D time-of-flight camera
-| 2.1.0 & ✔ 3.0.0
+| 2.1.0 & ✔ 4.0.1
 
 | Visionary-S CX (pass:[V3S102-1AAAAAA], pass:[V3S102<area>-1AABAAB])
 | link:https://www.sick.com/de/en/catalog/products/machine-vision-and-identification/machine-vision/visionary-s/v3s102-1aaaaaa/p/p602149[1090184] link:https://www.sick.com/de/en/catalog/products/machine-vision-and-identification/machine-vision/visionary-s/v3s102-1aabaab/p/p651629[1090185]
 | 3D structured light stereovision camera with RGB data
-| 6.0.0 & ✔ 6.5.0
+| 6.0.0 & ✔ 6.5.2
 |===
 
 == Getting started
 
-Before you begin, ensure you have met the following requirements:
+Before you begin, ensure Python 3.8 or newer is installed on your system.
 
-* You have installed `pip`, which is a package manager for Python. If not, you can install it using the following command:
+This repository provides setup scripts that create a virtual environment, install the package with its runtime dependencies, and install the local development tools from `requirements.txt`.
 
-[source,shell]
-----
-$ sudo apt install python3-pip
-----
-
-* You have installed the following Python libraries: `NumPy`, and `s`. If not, you can install them using pip:
+=== Linux
 
 [source,shell]
 ----
-$ pip3 install scikit-image
-$ pip3 install numpy
+./setup_linux_env.sh
+source .venv_python_base/bin/activate
 ----
 
-[NOTE]
-====
-Please replace the installation commands with the appropriate ones for your operating system or Python environment if necessary.
-====
+=== Windows PowerShell
+
+[source,powershell]
+----
+./setup_windows_env.ps1
+.\.venv_python_base\Scripts\Activate.ps1
+----
+
+++++
+<details>
+<summary><strong>Manual setup (optional)</strong></summary>
+
+If you prefer to create the environment yourself:
+
+<pre lang="bash"><code class="language-bash">python -m venv .venv_python_base
+# Linux/macOS
+source .venv_python_base/bin/activate
+# Windows PowerShell
+# .\.venv_python_base\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+pre-commit install</code></pre>
+
+</details>
+++++
+
+The package runtime dependencies are declared in `pyproject.toml`. The `requirements.txt` file installs the package in editable mode and adds the local formatting and linting tools used by pre-commit.
 
 == Support
 
