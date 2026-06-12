@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visionary-python-base"
+version = "1.2.0"
+description = "Base Python interfaces for SICK Visionary devices"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scikit-image",
+]
+
+[tool.setuptools]
+packages = [
+    "python_base",
+    "python_base.Protocol",
+    "python_base.Streaming",
+    "python_base.PointCloud"
+]
+
+[tool.setuptools.package-dir]
+"python_base" = "."
+"python_base.Protocol" = "Protocol"
+"python_base.Streaming" = "Streaming"
+"python_base.PointCloud" = "PointCloud"

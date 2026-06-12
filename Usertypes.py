@@ -21,12 +21,12 @@ class BinningOption(IntEnum):
 
 class AcquisitionModeStereo(IntEnum):
     """
-    This class represents the acquisition mode of the stereo front end. 
+    This class represents the acquisition mode of the stereo front end.
     It provides three modes: NORMAL, HDR, and HQM.
 
     Attributes:
         NORMAL (int): The standard acquisition mode.
-        HDR (int): This mode is recommended when both dark and shiny objects are present in the scene. 
+        HDR (int): This mode is recommended when both dark and shiny objects are present in the scene.
                     Two different integration times can be defined by the user to handle scenes of such high dynamic range.
         HQM (int): The high quality mode (HQM) will increase the repeatability of your depth values but may reduce the frame rate.
     """

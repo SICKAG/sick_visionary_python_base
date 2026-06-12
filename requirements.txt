@@ -1,0 +1,4 @@
+-e .
+pre-commit
+pre-commit-hooks
+autopep8

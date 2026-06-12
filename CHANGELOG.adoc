@@ -5,6 +5,37 @@ For a detailed view of what was changed, please refer to the repository's commit
 
 This project utilizes semantic versioning.
 
+== 1.2.0
+
+=== Changed
+
+* Development environment setup was standardized around `requirements.txt` and pre-commit hooks
+* Repository documentation was updated to describe the Python-only contribution workflow and local setup process
+
+=== Fixed
+
+* Package installation metadata now supports editable installs for the full module layout
+
+=== Added
+
+* Added `pyproject.toml` metadata for installing the project as a package
+* Added setup scripts for Linux and Windows PowerShell to create a virtual environment and install dependencies
+* Added package initialization files for submodules to support package-based imports
+* Added Timesync methods to Control class
+
+=== Removed
+
+=== Known Issues
+
+=== Compatibility
+
+* Python >= 3.8
+
+=== Supported devices
+
+* Visionary-T Mini CX (V3S105-1AAAAAA) 4.0.0
+* Visionary-S CX (V3S102-1AAAAAA and V3S102-1AABAAB) 6.5.2
+
 == 1.1.0
 
 === Changed
@@ -52,4 +83,3 @@ This project utilizes semantic versioning.
 
 * Visionary-T Mini CX (V3S105-1AAAAAA) 2.1.0
 * Visionary-S CX (V3S102-1AAAAAA and V3S102-1AABAAB) 6.0.0
-
